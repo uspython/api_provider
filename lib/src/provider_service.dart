@@ -2,22 +2,33 @@
  * @Author: jeffzhao
  * @Date: 2019-03-19 15:19:51
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-03-19 19:04:20
+ * @Last Modified time: 2019-03-20 19:13:21
  * Copyright Zhaojianfei. All rights reserved.
  */
 import 'dart:async';
 import 'dart:io';
 
 import 'package:api_datastore/api_datastore.dart'
-    show dio, ApiSettings, ApiService;
+    show ApiSettings;
 import 'package:dio/dio.dart'
     show DioError, Interceptor, InterceptorsWrapper, RequestOptions, Response;
 import 'package:device_info/device_info.dart';
 import 'package:package_info/package_info.dart';
+import './cherror.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 typedef RequestCallbackType = dynamic Function(RequestOptions);
 typedef ResponseCallbackType = dynamic Function(Response<dynamic>);
 typedef ErrorCallbackType = dynamic Function(DioError);
+
+class TestShare {
+  get(String key) {
+    return "xxxx";
+  }
+  setString(String key, String value) {
+    print('key: $key, value: $value');
+  }
+}
 class ProviderService {
   static final ProviderService _s = ProviderService._internal();
   factory ProviderService() {
@@ -26,13 +37,25 @@ class ProviderService {
   }
   ProviderService._internal();
 
-  Future _initializationFuture;
-  InterceptorsWrapper requestWrapper;
-  // TODO: (jeff) 加入本地获取的token
-  static String token = "";
+  Future<void> _initializationFuture;
+  Future<void> get initializationDone => _initializationFuture;
+  String _token = "";
+  // TODO: (jeff) this is for testing only
+  static SharedPreferences _sharedPreferences;
+  // static TestShare _sharedPreferences;
 
-  Future _init() async {
+
+
+  Future<void> _init() async {
     print("=============> confign init");
+    print("============= get token from device ==========");
+    // TODO: (jeff) this is for testing only
+    //get token
+    _sharedPreferences = await SharedPreferences.getInstance();
+    //_sharedPreferences = TestShare() ;
+    _token = (_sharedPreferences.get("CHINVESTMENT_TOKEN") ?? "") as String;
+    print("=============> token: $_token");
+
     final Map<String, String> info = await userAgengInfo();
     ApiSettings().baseUrl =
         "https://${isDebug() ? 'api-qa' : 'api'}.city-home.cn";
@@ -47,8 +70,6 @@ class ProviderService {
     };
     ApiSettings().defaultInterceptors.add(_defaultWrapper());
   }
-
-  Future get initializationDone => _initializationFuture;
 
   static bool isDebug() {
     return !bool.fromEnvironment('dart.vm.product');
@@ -77,7 +98,7 @@ class ProviderService {
             "qsbnb/android/${packageInfo.version}/zh/ (${androidInfo.version})shamu (${androidInfo.model})";
       } else {
         final packageInfo = PackageInfo(appName: 'test', packageName: 'testP', version: '0.0.1', buildNumber: '23');
-        userAgent = 'Qingbnbtest/${packageInfo.appName}/${packageInfo.version}/${packageInfo.packageName}';
+        userAgent = 'Qingbnb/${packageInfo.appName}/${packageInfo.version}/${packageInfo.packageName}';
       }
       c.complete({"ua": userAgent, "locale": locale});
     } catch (e) {
@@ -97,57 +118,38 @@ class ProviderService {
   }
 
   final RequestCallbackType _onRequest = (RequestOptions options) {
-      print('send request：path:${options.path}，baseURL:${options.baseUrl}');
-      if (token == null) {
-        print("no token，request token firstly...");
-        //lock the dio.
-        dio.lock();
-        return ApiService.get<Map<String, dynamic>>("/accounts/api_token_refresh/")
-        .then((d) {
-          options.headers["token"] = d.data['token'];
-          //print("request token succeed, value: " + d.data['token']);
-          print(
-              'continue to perform request：path:${options.path}，baseURL:${options.path}');
-          return options;
-        }).whenComplete(() => dio.unlock()); // unlock the dio
-      } else {
-        options.headers["token"] = token;
-        return options;
+      print('default request interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
+    };
+
+  final ResponseCallbackType _onResponse = (Response resp) {
+    print("=========> Default Response Interceptor");
+    /// Save the token if needed
+    final _success = (Map<String, dynamic> json, Response resp) {
+      switch (resp.request.path) {
+        case '/accounts/login/':
+          _sharedPreferences.setString('CHINVESTMENT_TOKEN', json['token'].toString());
+          break;
+        default:
       }
     };
 
-  final ResponseCallbackType _onResponse = (Response resp) => {
-
+    if (resp.statusCode == HttpStatus.ok) {
+      final json = (resp.data as Map<String, dynamic>) ?? {};
+        if ((json["status"] as int) != 0) {
+          throw CHError.fromJson(json);
+        } else if (json.keys.contains("data")) {
+          _success((json["data"] as Map<String, dynamic>) ?? {}, resp);
+          return json["data"] as Map<String, dynamic>;
+        } else {
+          _success(json, resp);
+          return json;
+        }
+    }
+    return resp.data;
   };
 
-  final ErrorCallbackType _onError = (DioError error) {
-      // Assume 401 stands for token expired
-      if (error.response?.statusCode == 401) {
-        RequestOptions options = error.response.request;
-        // If the token has been updated, repeat directly.
-        if (token != options.headers["token"]) {
-          options.headers["token"] = token;
-          //repeat
-          return dio.request(options.path, options: options);
-        }
-        // update token and repeat
-        // Lock to block the incoming request until the token updated
-        dio.lock();
-        dio.interceptors.responseLock.lock();
-        dio.interceptors.errorLock.lock();
-        return ApiService.get<Map<String, dynamic>>("/accounts/api_token_refresh/").then((d) {
-          //update token
-          options.headers["token"] = token = d.data['token'].toString();
-        }).whenComplete(() {
-          dio.unlock();
-          dio.interceptors.responseLock.unlock();
-          dio.interceptors.errorLock.unlock();
-        }).then((e) {
-          //repeat
-          return dio.request(options.path, options: options);
-        });
-      }
-      return error;
+  final ErrorCallbackType _onError = (DioError e) {
+    return e;
     };
 }
 
