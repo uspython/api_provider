@@ -2,7 +2,7 @@
 # See https://www.dartlang.org/tools/pub/glossary#lockfile
 packages:
   api_datastore:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       path: "."
       ref: "592493224b430a94c7cb79e8e22f09be37819292"

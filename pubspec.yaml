@@ -10,10 +10,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  api_datastore:
-    git:
-      url: git@gitlab.city-home.cn:app/api_datastore.git
-      ref: 592493224b430a94c7cb79e8e22f09be37819292
 
 
 dev_dependencies:
@@ -23,6 +19,10 @@ dev_dependencies:
   package_info: ^0.4.0+2
   device_info: ^0.4.0+1
   shared_preferences: ^0.5.1+1
+  api_datastore:
+    git:
+      url: git@gitlab.city-home.cn:app/api_datastore.git
+      ref: 592493224b430a94c7cb79e8e22f09be37819292
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
