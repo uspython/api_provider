@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:api_provider/api_provider.dart';
+import 'package:package_info/package_info.dart';
 
 void main() {
-  // test('adds one to input values', () {
-  //   final calculator = Calculator();
-  //   expect(calculator.addOne(2), 3);
-  //   expect(calculator.addOne(-7), -6);
-  //   expect(calculator.addOne(0), 1);
-  //   expect(() => calculator.addOne(null), throwsNoSuchMethodError);
-  // });
+  setUp(() {
+  });
+  test('provider service init', () async {
+    final providerService = ProviderService();
+    await providerService.initializationDone;
+    print("done");
+    //expect(providerService.init(), 3);
+  });
 }

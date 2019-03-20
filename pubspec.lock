@@ -5,8 +5,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: eb13bdda
-      resolved-ref: eb13bddae67210f743bd1824ea58b4a5f5b0198c
+      ref: "1d5d03d080433f65585e43a38d3767e6c52a06ab"
+      resolved-ref: "1d5d03d080433f65585e43a38d3767e6c52a06ab"
       url: "git@gitlab.city-home.cn:app/api_datastore.git"
     source: git
     version: "0.0.1"
@@ -45,8 +45,15 @@ packages:
       url: "https://dart-pub.mirrors.sjtug.sjtu.edu.cn"
     source: hosted
     version: "1.0.0"
+  device_info:
+    dependency: "direct dev"
+    description:
+      name: device_info
+      url: "https://dart-pub.mirrors.sjtug.sjtu.edu.cn"
+    source: hosted
+    version: "0.4.0+1"
   dio:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: dio
       url: "https://dart-pub.mirrors.sjtug.sjtu.edu.cn"
@@ -76,6 +83,13 @@ packages:
       url: "https://dart-pub.mirrors.sjtug.sjtu.edu.cn"
     source: hosted
     version: "1.1.6"
+  package_info:
+    dependency: "direct dev"
+    description:
+      name: package_info
+      url: "https://dart-pub.mirrors.sjtug.sjtu.edu.cn"
+    source: hosted
+    version: "0.4.0+2"
   path:
     dependency: transitive
     description:
@@ -160,3 +174,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.1.0 <3.0.0"
+  flutter: ">=0.1.4 <2.0.0"

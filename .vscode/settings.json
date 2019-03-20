@@ -1,0 +1,25 @@
+{
+  "workbench.colorTheme": "Monokai Pro (Filter Spectrum)",
+  "editor.tokenColorCustomizations": {
+    "[Material Night Eighties]": {
+      "keywords": "#ff5171",
+      "comments": "#838383"
+    },
+  },
+  "fileheader.Author": "jeffzhao",
+  "fileheader.LastModifiedBy": "jeffzhao",
+  "fileheader.tpl": "/*\r\n * @Author: {author}\r\n * @Date: {createTime}\r\n * @Last Modified by:   {lastModifiedBy}\r\n * @Last Modified time: {updateTime}\r\n * Copyright Zhaojianfei. All rights reserved.\r\n */\r\n",
+  "editor.insertSpaces": true,
+  "editor.minimap.maxColumn": 80,
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "dart.allowAnalytics": false,
+  "dart.flutterCreateAndroidLanguage": "kotlin",
+  "dart.flutterCreateOrganization": "com.cityhome",
+  "dart.flutterScreenshotPath": "/Users/Jeffmac/Desktop",
+  "editor.tabSize": 2,
+  "dart.runPubGetOnPubspecChanges": false,
+  "dart.pubAdditionalArgs": [
+    "--verbose",
+  ]
+}
