@@ -2,7 +2,7 @@
  * @Author: jeffzhao
  * @Date: 2019-03-19 15:19:51
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-03-20 19:13:21
+ * @Last Modified time: 2019-03-22 17:58:45
  * Copyright Zhaojianfei. All rights reserved.
  */
 import 'dart:async';
@@ -14,18 +14,20 @@ import 'package:dio/dio.dart'
     show DioError, Interceptor, InterceptorsWrapper, RequestOptions, Response;
 import 'package:device_info/device_info.dart';
 import 'package:package_info/package_info.dart';
-import './cherror.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import './cherror.dart';
+
 
 typedef RequestCallbackType = dynamic Function(RequestOptions);
 typedef ResponseCallbackType = dynamic Function(Response<dynamic>);
 typedef ErrorCallbackType = dynamic Function(DioError);
 
 class TestShare {
-  get(String key) {
-    return "xxxx";
+
+  String getString(String key) {
+    return 'xxxx';
   }
-  setString(String key, String value) {
+  void setString(String key, String value) {
     print('key: $key, value: $value');
   }
 }
@@ -39,7 +41,7 @@ class ProviderService {
 
   Future<void> _initializationFuture;
   Future<void> get initializationDone => _initializationFuture;
-  String _token = "";
+  String _token = '';
   // TODO: (jeff) this is for testing only
   static SharedPreferences _sharedPreferences;
   // static TestShare _sharedPreferences;
@@ -47,20 +49,20 @@ class ProviderService {
 
 
   Future<void> _init() async {
-    print("=============> confign init");
-    print("============= get token from device ==========");
+    print('=============> confign init');
+    print('============= get token from device ==========');
     // TODO: (jeff) this is for testing only
     //get token
     _sharedPreferences = await SharedPreferences.getInstance();
     //_sharedPreferences = TestShare() ;
-    _token = (_sharedPreferences.get("CHINVESTMENT_TOKEN") ?? "") as String;
-    print("=============> token: $_token");
+    _token = (_sharedPreferences.getString('CHINVESTMENT_TOKEN') ?? '');
+    print('=============> token: $_token');
 
-    final Map<String, String> info = await userAgengInfo();
+    final info = await userAgengInfo() as Map<String, String>;
     ApiSettings().baseUrl =
-        "https://${isDebug() ? 'api-qa' : 'api'}.city-home.cn";
-    ApiSettings().connectTimeout = 10000;
-    ApiSettings().receiveTimeout = 10000;
+        'https://${isDebug() ? 'api-qa' : 'api'}.city-home.cn';
+    ApiSettings().connectTimeout = 120 * 1000;
+    ApiSettings().receiveTimeout = 120 * 1000;
     ApiSettings().requestHeader = {
       HttpHeaders.userAgentHeader: info['ua'],
       HttpHeaders.acceptHeader: 'application/json',
@@ -72,35 +74,35 @@ class ProviderService {
   }
 
   static bool isDebug() {
-    return !bool.fromEnvironment('dart.vm.product');
+    return !(const bool.fromEnvironment('dart.vm.product'));
   }
 
-  static Future<Map<String, String>> userAgengInfo() async {
-    final Completer<Map<String, String>> c = Completer();
+  static Future userAgengInfo() async {
+    final c = Completer();
     try {
       final deviceInfo = DeviceInfoPlugin();
-      String device = "";
-      String userAgent = "";
-      String locale = "zh_CN";
+      var device = '';
+      var userAgent = '';
+      var locale = 'zh_CN';
       // TODO: Jeff: this UA only for testing
       if (Platform.isIOS) {
         final packageInfo = await PackageInfo.fromPlatform();
-        IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+        final iosInfo = await deviceInfo.iosInfo;
         device =
-            "(${iosInfo.utsname.machine}; ${iosInfo.utsname.sysname})${iosInfo.systemVersion}; ";
+            '(${iosInfo.utsname.machine}; ${iosInfo.utsname.sysname})${iosInfo.systemVersion}; ';
         userAgent =
             'Qingbnb/${packageInfo.version}/${iosInfo.localizedModel} $device ${iosInfo.localizedModel}';
         locale = iosInfo.localizedModel;
       } else if (Platform.isAndroid || Platform.isFuchsia) {
         final packageInfo = await PackageInfo.fromPlatform();
-        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        final androidInfo = await deviceInfo.androidInfo;
         userAgent =
-            "qsbnb/android/${packageInfo.version}/zh/ (${androidInfo.version})shamu (${androidInfo.model})";
+            'qsbnb/android/${packageInfo.version}/zh/ (${androidInfo.version})shamu (${androidInfo.model})';
       } else {
         final packageInfo = PackageInfo(appName: 'test', packageName: 'testP', version: '0.0.1', buildNumber: '23');
         userAgent = 'Qingbnb/${packageInfo.appName}/${packageInfo.version}/${packageInfo.packageName}';
       }
-      c.complete({"ua": userAgent, "locale": locale});
+      c.complete({'ua': userAgent, 'locale': locale});
     } catch (e) {
       print(e);
       c.completeError(e);
@@ -109,7 +111,7 @@ class ProviderService {
   }
 
   Interceptor _defaultWrapper() {
-    final InterceptorsWrapper defaultRequestInterceptor = InterceptorsWrapper(
+    final defaultRequestInterceptor = InterceptorsWrapper(
       onRequest: _onRequest,
       onResponse: _onResponse,
       onError: _onError
@@ -119,38 +121,36 @@ class ProviderService {
 
   final RequestCallbackType _onRequest = (RequestOptions options) {
       print('default request interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
-    };
+  };
 
   final ResponseCallbackType _onResponse = (Response resp) {
-    print("=========> Default Response Interceptor");
-    /// Save the token if needed
-    final _success = (Map<String, dynamic> json, Response resp) {
-      switch (resp.request.path) {
-        case '/accounts/login/':
-          _sharedPreferences.setString('CHINVESTMENT_TOKEN', json['token'].toString());
-          break;
-        default:
-      }
-    };
-
+    print('=========> Default Response Interceptor');
     if (resp.statusCode == HttpStatus.ok) {
       final json = (resp.data as Map<String, dynamic>) ?? {};
-        if ((json["status"] as int) != 0) {
+        if ((json['status'] as int) != 0) {
           throw CHError.fromJson(json);
-        } else if (json.keys.contains("data")) {
-          _success((json["data"] as Map<String, dynamic>) ?? {}, resp);
-          return json["data"] as Map<String, dynamic>;
+        } else if (json.containsKey('data')) {
+          return _success((json['data'] as Map<String, dynamic>) ?? {}, resp);
         } else {
-          _success(json, resp);
-          return json;
+          return _success(json, resp);
         }
     }
     return resp.data;
   };
 
+  static Map<String, dynamic> _success(Map<String, dynamic> json, Response resp) {
+      switch (resp.request.path) {
+        case '/accounts/login/':
+           _sharedPreferences.setString('CHINVESTMENT_TOKEN', json['token'].toString());
+          break;
+        default:
+      }
+      return json;
+  }
+
   final ErrorCallbackType _onError = (DioError e) {
     return e;
-    };
+  };
 }
 
 
