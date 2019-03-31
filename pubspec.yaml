@@ -20,8 +20,7 @@ dev_dependencies:
   device_info: ^0.4.0+1
   shared_preferences: ^0.5.1+1
   build_runner: ^1.0.0
-  json_serializable: ^2.0.0
-  json_annotation: ^2.0.0
+  built_value: '>=5.5.5 <7.0.0'
   api_datastore:
     git:
       url: git@gitlab.city-home.cn:app/api_datastore.git

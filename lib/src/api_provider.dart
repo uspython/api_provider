@@ -8,27 +8,18 @@
 import 'dart:async';
 
 import 'package:api_datastore/api_datastore.dart';
-import 'api_json_converter.dart';
-import 'dart:';
-
-class JsonConvertable {
-  final String genericPlaceHolder;
-  JsonConvertable({this.genericPlaceHolder});
-
-  factory JsonConvertable.fromJson(Map<String, dynamic> json) => JsonConvertable(genericPlaceHolder: json['_empty'] as String);
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{};
-  }
-  JsonConvertable fromMap(Map<String, dynamic> json) => JsonConvertable(genericPlaceHolder: json['_empty'] as String);
-}
+import 'package:built_value/serializer.dart';
+import './provider_service.dart';
 
 class ApiProvider {
-  static Future<T> fetchGet<T>(String path, {Map<String, dynamic> params, CallbackOptions callbacks}) async {
+  static Future<T> fetch<T>(String path, {Map<String, dynamic> params, CallbackOptions callbacks}) async {
     final completer = Completer<T>();
     try {
       final ret = await ApiService.get(path, params: params, callbacks: callbacks);
-
-      final r = (T as JsonConvertable).fromMap(ret.data as Map<String, dynamic>);
+      var r = ret.data;
+      if (T != dynamic) {
+        r = ProviderService.jsonSerializers.deserialize(ret.data, specifiedType: FullType(T));
+      }
       completer.complete(r as T);
     } catch (e) {
       completer.completeError(e);

@@ -15,6 +15,7 @@ import 'package:dio/dio.dart'
 import 'package:device_info/device_info.dart';
 import 'package:package_info/package_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:built_value/serializer.dart';
 import './cherror.dart';
 
 
@@ -34,14 +35,18 @@ class TestShare {
 class ProviderService {
   static final ProviderService _s = ProviderService._internal();
   factory ProviderService() {
-    _s._initializationFuture = _s._initializationFuture ?? _s._init();
+    _s._initialization = _s._initialization ?? _s._init();
     return _s;
   }
   ProviderService._internal();
 
-  Future<void> _initializationFuture;
-  Future<void> get initializationDone => _initializationFuture;
-  String _token = '';
+  static Serializers jsonSerializers;
+  //TODO: (Jeff) move token saving out of this project
+  static dynamic onGotToken;
+  static dynamic onLogout;
+  //ProviderService({this.jsonSerializers, this.sharedPreferences}): onGotToken = '', onLogout = '';
+  Future<void> _initialization;
+  Future<void> get initializationDone => _initialization;
   // TODO: (jeff) this is for testing only
   static SharedPreferences _sharedPreferences;
   // static TestShare _sharedPreferences;
@@ -54,13 +59,12 @@ class ProviderService {
     // TODO: (jeff) this is for testing only
     //get token
     _sharedPreferences = await SharedPreferences.getInstance();
-    //_sharedPreferences = TestShare() ;
-    _token = (_sharedPreferences.getString('CHINVESTMENT_TOKEN') ?? '');
-    print('=============> token: $_token');
+    // _sharedPreferences = TestShare() ;
+    final token = (_sharedPreferences.getString('CHINVESTMENT_TOKEN') ?? '');
+    print('=============> token: $token');
 
     final info = await userAgengInfo() as Map<String, String>;
-    ApiSettings().baseUrl =
-        'https://${isDebug() ? 'api-qa' : 'api'}.city-home.cn';
+    ApiSettings().baseUrl = 'https://${isDebug() ? 'api-qa' : 'api'}.city-home.cn';
     ApiSettings().connectTimeout = 120 * 1000;
     ApiSettings().receiveTimeout = 120 * 1000;
     ApiSettings().requestHeader = {
@@ -127,7 +131,7 @@ class ProviderService {
     print('=========> Default Response Interceptor');
     if (resp.statusCode == HttpStatus.ok) {
       final json = (resp.data as Map<String, dynamic>) ?? {};
-        if ((json['status'] as int) != 0) {
+        if (json.containsKey('status') && (json['status'] as int) != 0) {
           throw CHError.fromJson(json);
         } else if (json.containsKey('data')) {
           return _success((json['data'] as Map<String, dynamic>) ?? {}, resp);
@@ -152,5 +156,3 @@ class ProviderService {
     return e;
   };
 }
-
-
