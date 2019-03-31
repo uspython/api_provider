@@ -16,14 +16,29 @@ class ApiProvider {
     final completer = Completer<T>();
     try {
       final ret = await ApiService.get(path, params: params, callbacks: callbacks);
-      var r = ret.data;
-      if (T != dynamic) {
-        r = ProviderService.jsonSerializers.deserialize(ret.data, specifiedType: FullType(T));
-      }
-      completer.complete(r as T);
+      completer.complete(_success(ret.data));
     } catch (e) {
       completer.completeError(e);
     }
     return completer.future;
+  }
+
+  static Future<T> fetchPost<T>(String path, {Map<String, dynamic> params, CallbackOptions callbacks}) async {
+    final completer = Completer<T>();
+    try {
+      final ret = await ApiService.post(path, params: params, callbacks: callbacks);
+      completer.complete(_success(ret.data));
+    } catch (e) {
+      completer.completeError(e);
+    }
+    return completer.future;
+  }
+
+  static T _success<T>(dynamic data) {
+    var r = data;
+    if (T != dynamic) {
+      r = ProviderService.jsonSerializers.deserialize(data, specifiedType: FullType(T));
+    }
+    return r as T;
   }
 }
