@@ -2,7 +2,7 @@
  * @Author: jeffzhao
  * @Date: 2019-03-20 15:31:17
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-03-22 17:46:01
+ * @Last Modified time: 2019-04-01 16:13:41
  * Copyright Zhaojianfei. All rights reserved.
  */
 
@@ -24,3 +24,11 @@ class CHError extends DioError {
 
   final int statusCode;
 }
+
+class CHErrorEnum  {
+  static const String tokenExpired = '10005';
+  static const String invalidToken = '10011';
+  static const String permissionDenied = '10004';
+  static const String refreshTokenFailed = '10010';
+}
+

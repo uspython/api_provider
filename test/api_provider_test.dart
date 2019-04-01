@@ -2,7 +2,7 @@
  * @Author: jeffzhao
  * @Date: 2019-04-01 12:26:23
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-04-01 14:04:28
+ * @Last Modified time: 2019-04-01 17:08:50
  * Copyright Zhaojianfei. All rights reserved.
  */
 
@@ -17,6 +17,7 @@ import 'package:api_provider/src/api_provider_interface.dart';
 
 
 final token = '2808555322_d953c3fb7d0e4b72b81a4f31a8b2c7c6';
+// final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
 final info = {'ua': 'Qingbnb/0.0.1/en (iPhone10,6; iOS)12.1; en_US', 'locale': 'zh_CN'};
 //final onGotToken = (String atoken) => print('got token from api $atoken');
 //final onLogout = () => print('log out');
@@ -85,6 +86,17 @@ void main() {
       } on CHError catch (e) {
         expect(e.statusCode, 10010);
         expect(e.message, '刷新时间过期');
+      } on DioError catch (e) {
+        print(e.response);
+      }
+    });
+
+    test('token expired, refresh token failed', () async {
+      try {
+        final ret = await ApiProvider.fetch('/rooms/state/');
+        print(jsonEncode(ret));
+      } on CHError catch (e) {
+        expect(e.statusCode.toString(), CHErrorEnum.refreshTokenFailed);
       } on DioError catch (e) {
         print(e.response);
       }
