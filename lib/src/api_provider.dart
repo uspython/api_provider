@@ -16,7 +16,7 @@ class ApiProvider {
     final completer = Completer<T>();
     try {
       final ret = await ApiService.get(path, params: params, callbacks: callbacks);
-      completer.complete(_success(ret.data));
+      completer.complete(_success<T>(ret.data));
     } catch (e) {
       completer.completeError(e);
     }
@@ -27,7 +27,7 @@ class ApiProvider {
     final completer = Completer<T>();
     try {
       final ret = await ApiService.post(path, params: params, callbacks: callbacks);
-      completer.complete(_success(ret.data));
+      completer.complete(_success<T>(ret.data));
     } catch (e) {
       completer.completeError(e);
     }
