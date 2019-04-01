@@ -2,7 +2,7 @@
  * @Author: jeffzhao
  * @Date: 2019-03-19 15:19:51
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-04-01 12:46:44
+ * @Last Modified time: 2019-04-01 14:07:28
  * Copyright Zhaojianfei. All rights reserved.
  */
 import 'dart:io';
@@ -12,6 +12,7 @@ import 'package:api_datastore/api_datastore.dart'
 import 'package:dio/dio.dart'
     show DioError, Interceptor, InterceptorsWrapper, RequestOptions, Response;
 import 'package:built_value/serializer.dart';
+import './api_provider_interface.dart';
 import './cherror.dart';
 
 
@@ -19,15 +20,6 @@ typedef RequestCallbackType = dynamic Function(RequestOptions);
 typedef ResponseCallbackType = dynamic Function(Response<dynamic>);
 typedef ErrorCallbackType = dynamic Function(DioError);
 
-class TestShare {
-
-  String getString(String key) {
-    return 'xxxx';
-  }
-  void setString(String key, String value) {
-    print('key: $key, value: $value');
-  }
-}
 class ProviderService {
   static final ProviderService _s = ProviderService._internal();
   factory ProviderService() {
@@ -42,10 +34,8 @@ class ProviderService {
   static Map<String, dynamic> get userInfo => _userInfo;
   static Map<String, dynamic> _userInfo;
 
-  static void Function(String) get onGotToken => _onGotToken;
-  static void Function(String) _onGotToken;
-  static void Function() get onLogout => _onLogout;
-  static void Function() _onLogout;
+  static ApiProviderInterface get providerInterface => _providerInterface;
+  static ApiProviderInterface _providerInterface;
 
   dynamic get initializationDone => _init;
 
@@ -61,12 +51,8 @@ class ProviderService {
     _userInfo = info;
   }
 
-  void setOnGotToken(void Function(String) block) {
-    _onGotToken = block;
-  }
-
-  void setOnLogout(void Function() block) {
-    _onLogout = block;
+  void setProviderInterface(ApiProviderInterface interface) {
+    _providerInterface = interface;
   }
 
   dynamic _init() {
@@ -123,7 +109,7 @@ class ProviderService {
   static Map<String, dynamic> _success(Map<String, dynamic> json, Response resp) {
       switch (resp.request.path) {
         case '/accounts/login/':
-          onGotToken(json['token'].toString());
+          providerInterface.onGotToken(json['token'].toString());
           break;
         default:
       }
