@@ -2,18 +2,15 @@
  * @Author: jeffzhao
  * @Date: 2019-03-19 15:19:51
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-04-01 12:43:17
+ * @Last Modified time: 2019-04-01 12:46:44
  * Copyright Zhaojianfei. All rights reserved.
  */
-import 'dart:async';
 import 'dart:io';
 
 import 'package:api_datastore/api_datastore.dart'
     show ApiSettings;
 import 'package:dio/dio.dart'
     show DioError, Interceptor, InterceptorsWrapper, RequestOptions, Response;
-import 'package:device_info/device_info.dart';
-import 'package:package_info/package_info.dart';
 import 'package:built_value/serializer.dart';
 import './cherror.dart';
 
