@@ -2,7 +2,7 @@
  * @Author: jeffzhao
  * @Date: 2019-03-19 15:19:51
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-03-22 17:58:45
+ * @Last Modified time: 2019-04-01 12:43:17
  * Copyright Zhaojianfei. All rights reserved.
  */
 import 'dart:async';
@@ -14,7 +14,6 @@ import 'package:dio/dio.dart'
     show DioError, Interceptor, InterceptorsWrapper, RequestOptions, Response;
 import 'package:device_info/device_info.dart';
 import 'package:package_info/package_info.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:built_value/serializer.dart';
 import './cherror.dart';
 
@@ -35,40 +34,55 @@ class TestShare {
 class ProviderService {
   static final ProviderService _s = ProviderService._internal();
   factory ProviderService() {
-    _s._initialization = _s._initialization ?? _s._init();
     return _s;
   }
   ProviderService._internal();
 
-  static Serializers jsonSerializers;
-  //TODO: (Jeff) move token saving out of this project
-  static dynamic onGotToken;
-  static dynamic onLogout;
-  //ProviderService({this.jsonSerializers, this.sharedPreferences}): onGotToken = '', onLogout = '';
-  Future<void> _initialization;
-  Future<void> get initializationDone => _initialization;
-  // TODO: (jeff) this is for testing only
-  static SharedPreferences _sharedPreferences;
-  // static TestShare _sharedPreferences;
+  static Serializers get jsonSerializers => _jsonSerializers;
+  static Serializers _jsonSerializers;
+  static String get token => _token;
+  static String _token;
+  static Map<String, dynamic> get userInfo => _userInfo;
+  static Map<String, dynamic> _userInfo;
 
+  static void Function(String) get onGotToken => _onGotToken;
+  static void Function(String) _onGotToken;
+  static void Function() get onLogout => _onLogout;
+  static void Function() _onLogout;
 
+  dynamic get initializationDone => _init;
 
-  Future<void> _init() async {
-    print('=============> confign init');
-    print('============= get token from device ==========');
-    // TODO: (jeff) this is for testing only
-    //get token
-    _sharedPreferences = await SharedPreferences.getInstance();
-    // _sharedPreferences = TestShare() ;
-    final token = (_sharedPreferences.getString('CHINVESTMENT_TOKEN') ?? '');
-    print('=============> token: $token');
+  void setSerializers(Serializers s) {
+    _jsonSerializers = s;
+  }
 
-    final info = await userAgengInfo() as Map<String, String>;
+  void setToken(String token) {
+    _token = token;
+  }
+
+  void setUserInfo(Map<String, dynamic> info) {
+    _userInfo = info;
+  }
+
+  void setOnGotToken(void Function(String) block) {
+    _onGotToken = block;
+  }
+
+  void setOnLogout(void Function() block) {
+    _onLogout = block;
+  }
+
+  dynamic _init() {
+    print('=============> confign initialize');
+    print('============= token from device ==========');
+    print('=============> :$token');
+
+    final info = userInfo;
     ApiSettings().baseUrl = 'https://${isDebug() ? 'api-qa' : 'api'}.city-home.cn';
     ApiSettings().connectTimeout = 120 * 1000;
     ApiSettings().receiveTimeout = 120 * 1000;
     ApiSettings().requestHeader = {
-      HttpHeaders.userAgentHeader: info['ua'],
+      HttpHeaders.userAgentHeader: info['ua'] as String,
       HttpHeaders.acceptHeader: 'application/json',
       HttpHeaders.acceptEncodingHeader: 'gzip;q=1.0, compress;q=0.5',
       HttpHeaders.acceptLanguageHeader: '${info['locale']};q=1.0',
@@ -79,39 +93,6 @@ class ProviderService {
 
   static bool isDebug() {
     return !(const bool.fromEnvironment('dart.vm.product'));
-  }
-
-  static Future userAgengInfo() async {
-    final c = Completer();
-    try {
-      final deviceInfo = DeviceInfoPlugin();
-      var device = '';
-      var userAgent = '';
-      var locale = 'zh_CN';
-      // TODO: Jeff: this UA only for testing
-      if (Platform.isIOS) {
-        final packageInfo = await PackageInfo.fromPlatform();
-        final iosInfo = await deviceInfo.iosInfo;
-        device =
-            '(${iosInfo.utsname.machine}; ${iosInfo.utsname.sysname})${iosInfo.systemVersion}; ';
-        userAgent =
-            'Qingbnb/${packageInfo.version}/${iosInfo.localizedModel} $device ${iosInfo.localizedModel}';
-        locale = iosInfo.localizedModel;
-      } else if (Platform.isAndroid || Platform.isFuchsia) {
-        final packageInfo = await PackageInfo.fromPlatform();
-        final androidInfo = await deviceInfo.androidInfo;
-        userAgent =
-            'qsbnb/android/${packageInfo.version}/zh/ (${androidInfo.version})shamu (${androidInfo.model})';
-      } else {
-        final packageInfo = PackageInfo(appName: 'test', packageName: 'testP', version: '0.0.1', buildNumber: '23');
-        userAgent = 'Qingbnb/${packageInfo.appName}/${packageInfo.version}/${packageInfo.packageName}';
-      }
-      c.complete({'ua': userAgent, 'locale': locale});
-    } catch (e) {
-      print(e);
-      c.completeError(e);
-    }
-    return c.future;
   }
 
   Interceptor _defaultWrapper() {
@@ -145,7 +126,7 @@ class ProviderService {
   static Map<String, dynamic> _success(Map<String, dynamic> json, Response resp) {
       switch (resp.request.path) {
         case '/accounts/login/':
-           _sharedPreferences.setString('CHINVESTMENT_TOKEN', json['token'].toString());
+          onGotToken(json['token'].toString());
           break;
         default:
       }

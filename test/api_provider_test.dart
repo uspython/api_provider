@@ -1,3 +1,11 @@
+/*
+ * @Author: jeffzhao
+ * @Date: 2019-04-01 12:26:23
+ * @Last Modified by: jeffzhao
+ * @Last Modified time: 2019-04-01 12:37:11
+ * Copyright Zhaojianfei. All rights reserved.
+ */
+
 import 'dart:convert';
 
 import 'package:api_provider/src/cherror.dart';
@@ -5,22 +13,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:api_provider/api_provider.dart';
 import 'package:api_datastore/api_datastore.dart';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+
+final token = '2808555322_d953c3fb7d0e4b72b81a4f31a8b2c7c6';
+final info = {'ua': 'Qingbnb/0.0.1/en (iPhone10,6; iOS)12.1; en_US', 'locale': 'zh_CN'};
+final onGotToken = (String atoken) => print('got token from api $atoken');
+final onLogout = () => print('log out');
 
 void main() {
-  ProviderService providerService;
-  setUp(() {
-    SharedPreferences.setMockInitialValues({
-      'CHINVESTMENT_TOKEN': '',
-    });
-    providerService = ProviderService();
-
-  });
-  group('Api Privider Service', () {
-    test('init', () async {
-      await providerService.initializationDone;
-      print('init done');
-    });
+  final providerService = ProviderService()
+    ..setToken(token)
+    ..setUserInfo(info)
+    ..setOnGotToken(onGotToken)
+    ..setOnLogout(onLogout)
+    ..initializationDone();
+     print('init done');
 
     test('interractor with wrong url error', () async {
       try {
@@ -28,6 +35,8 @@ void main() {
         print(test);
       } on DioError catch (e) {
         expect(e.type, DioErrorType.RESPONSE);
+      } on Error catch (e) {
+        print(e);
       }
     });
 
@@ -71,5 +80,4 @@ void main() {
         print(e.response);
       }
     });
-  });
 }

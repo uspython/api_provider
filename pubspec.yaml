@@ -16,9 +16,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   dio: ^2.1.0
-  package_info: ^0.4.0+2
-  device_info: ^0.4.0+1
-  shared_preferences: ^0.5.1+1
   build_runner: ^1.0.0
   built_value: '>=5.5.5 <7.0.0'
   api_datastore:

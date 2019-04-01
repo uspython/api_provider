@@ -1,4 +1,10 @@
-import 'dart:io';
+/*
+ * @Author: jeffzhao
+ * @Date: 2019-04-01 12:26:12
+ * @Last Modified by:   jeffzhao
+ * @Last Modified time: 2019-04-01 12:26:12
+ * Copyright Zhaojianfei. All rights reserved.
+ */
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:api_datastore/api_datastore.dart';
@@ -8,27 +14,20 @@ import './serializer.dart';
 import './user_modal.dart';
 
 final testS = (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
+final token = '';
+final info = {'ua': 'Qingbnb/0.0.1/en (iPhone10,6; iOS)12.1; en_US', 'locale': 'zh_CN'};
 
 void main() {
-  final _ = ProviderService();
+  final _ = ProviderService()
+    ..setToken(token)
+    ..setUserInfo(info)
+    ..setSerializers(testS)
+    ..initializationDone();
+     print('init done');
   ApiSettings().baseUrl = 'https://jsonplaceholder.typicode.com';
-  ApiSettings().connectTimeout = 60 * 1000;
-  ApiSettings().receiveTimeout = 60 * 1000;
-  ApiSettings().requestHeader = {
-    HttpHeaders.userAgentHeader:
-        'Qingbnb/0.1.6/en (iPhone10,6; iOS)12.1; zh_CN',
-    HttpHeaders.acceptHeader: 'application/json',
-    HttpHeaders.acceptEncodingHeader: 'gzip;q=1.0, compress;q=0.5',
-    HttpHeaders.acceptLanguageHeader: 'zh_CN;q=1.0',
-    HttpHeaders.connectionHeader: 'keep-alive',
-  };
-  ProviderService.jsonSerializers = testS;
+  //ProviderService.jsonSerializers = testS;
 
-  test('test await initialization', () async {
-    // await providerService.initializationDone;
-  });
-
-  test('test', () async {
+  test('test UserModal', () async {
     final ret = await ApiProvider.fetch<UserModal>('/users/1');
     print(ret);
   });

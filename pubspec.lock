@@ -143,13 +143,6 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "1.2.4"
-  device_info:
-    dependency: "direct dev"
-    description:
-      name: device_info
-      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
-    source: hosted
-    version: "0.4.0+1"
   dio:
     dependency: "direct dev"
     description:
@@ -279,13 +272,6 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "1.0.5"
-  package_info:
-    dependency: "direct dev"
-    description:
-      name: package_info
-      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
-    source: hosted
-    version: "0.4.0+2"
   package_resolver:
     dependency: transitive
     description:
@@ -335,13 +321,6 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "2.0.1"
-  shared_preferences:
-    dependency: "direct dev"
-    description:
-      name: shared_preferences
-      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
-    source: hosted
-    version: "0.5.1+2"
   shelf:
     dependency: transitive
     description:
