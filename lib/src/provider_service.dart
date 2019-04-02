@@ -2,13 +2,14 @@
  * @Author: jeffzhao
  * @Date: 2019-03-19 15:19:51
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-04-01 17:06:39
+ * @Last Modified time: 2019-04-02 11:33:08
  * Copyright Zhaojianfei. All rights reserved.
  */
 import 'dart:io';
 
 import 'package:api_datastore/api_datastore.dart'
     show ApiSettings, dio;
+import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart'
     show
         DioError,
@@ -18,9 +19,9 @@ import 'package:dio/dio.dart'
         Response,
         Dio,
         BaseOptions;
-import 'package:built_value/serializer.dart';
+
+import './CHError.dart';
 import './api_provider_interface.dart';
-import './cherror.dart';
 
 typedef RequestCallbackType = dynamic Function(RequestOptions);
 typedef ResponseCallbackType = dynamic Function(Response<dynamic>);
@@ -129,14 +130,13 @@ class ProviderService {
   }
 
   final ErrorCallbackType _onError = (DioError e) {
-    final chError = e as CHError;
-    if (chError != null) {
-      switch (chError.statusCode.toString()) {
+    if (e is CHError) {
+      switch (e.statusCode.toString()) {
         case CHErrorEnum.tokenExpired: {
           /// Refresh Token
-          // return _refreshToken(chError);
+          // return _refreshToken(e);
           print('=========> refresh token');
-          final options = chError.request;
+          final options = e.request;
           // If the token has been updated, repeat directly.
           if ('Bearer $token' != options.headers[HttpHeaders.authorizationHeader]) {
             options.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
