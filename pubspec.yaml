@@ -21,7 +21,7 @@ dev_dependencies:
   api_datastore:
     git:
       url: git@gitlab.city-home.cn:app/api_datastore.git
-      ref: 592493224b430a94c7cb79e8e22f09be37819292
+      ref: e01536b56f0a0bcb8f0dff392ae7959ab6c12641
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec

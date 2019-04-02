@@ -2,13 +2,12 @@
  * @Author: jeffzhao
  * @Date: 2019-03-19 15:19:51
  * @Last Modified by: jeffzhao
- * @Last Modified time: 2019-04-02 11:33:08
+ * @Last Modified time: 2019-04-02 15:38:03
  * Copyright Zhaojianfei. All rights reserved.
  */
 import 'dart:io';
 
-import 'package:api_datastore/api_datastore.dart'
-    show ApiSettings, dio;
+import 'package:api_datastore/api_datastore.dart' show ApiSettings, dio;
 import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart'
     show
@@ -45,6 +44,8 @@ class ProviderService {
   static ApiProviderInterface _providerInterface;
 
   dynamic get initializationDone => _init;
+
+  static final _cache = Map<Uri, Response>();
 
   void setSerializers(Serializers s) {
     _jsonSerializers = s;
@@ -101,10 +102,21 @@ class ProviderService {
         options.path == '/accounts/api_token_refresh/') {
       options.headers.remove(HttpHeaders.authorizationHeader);
     }
+
+    final response = _cache[options.uri];
+    if (options.extra['needCached'] == true) {
+      print('${options.uri}: force refresh, ignore cache! \n');
+      return options;
+    } else if (response != null) {
+      print('cache hit: ${options.uri} \n');
+      return response;
+    }
   };
 
   static final ResponseCallbackType _onResponse = (Response resp) {
     print('=========> Default Response Interceptor');
+    _cache[resp.request.uri] = resp;
+
     if (resp.statusCode == HttpStatus.ok) {
       final json = (resp.data as Map<String, dynamic>) ?? {};
       if (json.containsKey('status') && (json['status'] as int) != 0) {
@@ -123,6 +135,7 @@ class ProviderService {
     switch (resp.request.path) {
       case '/accounts/login/':
         providerInterface.onGotToken(json['token'].toString());
+        providerInterface.onLogin();
         break;
       default:
     }
@@ -132,45 +145,52 @@ class ProviderService {
   final ErrorCallbackType _onError = (DioError e) {
     if (e is CHError) {
       switch (e.statusCode.toString()) {
-        case CHErrorEnum.tokenExpired: {
-          /// Refresh Token
-          // return _refreshToken(e);
-          print('=========> refresh token');
-          final options = e.request;
-          // If the token has been updated, repeat directly.
-          if ('Bearer $token' != options.headers[HttpHeaders.authorizationHeader]) {
-            options.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
-            //repeat
-            return dio.request(options.path, options: options);
+        case CHErrorEnum.tokenExpired:
+          {
+            /// Refresh Token
+            // return _refreshToken(e);
+            print('=========> refresh token');
+            final options = e.request;
+            // If the token has been updated, repeat directly.
+            if ('Bearer $token' !=
+                options.headers[HttpHeaders.authorizationHeader]) {
+              options.headers[HttpHeaders.authorizationHeader] =
+                  'Bearer $token';
+              //repeat
+              return dio.request(options.path, options: options);
+            }
+            // update token and repeat
+            // Lock to block the incoming request until the token updated
+            dio.lock();
+            dio.interceptors.responseLock.lock();
+            dio.interceptors.errorLock.lock();
+
+            final tokenDio = Dio(BaseOptions(
+              baseUrl: options.baseUrl,
+              connectTimeout: options.connectTimeout,
+              receiveTimeout: options.receiveTimeout,
+              headers: options.headers,
+              responseType: options.responseType,
+            ));
+
+            tokenDio.interceptors
+                .add(InterceptorsWrapper(onResponse: _onResponse));
+
+            return tokenDio
+                .request('/accounts/api_token_refresh/',
+                    queryParameters: {'token': token})
+                .then((result) {
+                  final newToken = result.data['token'].toString();
+                  options.headers[HttpHeaders.authorizationHeader] =
+                      'Bearer $newToken';
+                  providerInterface.onGotToken(newToken);
+                })
+                .whenComplete(_unLockCurrentDio)
+                .then((e) {
+                  //repeat
+                  return dio.request(options.path, options: options);
+                });
           }
-          // update token and repeat
-          // Lock to block the incoming request until the token updated
-          dio.lock();
-          dio.interceptors.responseLock.lock();
-          dio.interceptors.errorLock.lock();
-
-          final tokenDio = Dio(BaseOptions(
-            baseUrl: options.baseUrl,
-            connectTimeout: options.connectTimeout,
-            receiveTimeout: options.receiveTimeout,
-            headers: options.headers,
-            responseType: options.responseType,
-          ));
-
-          tokenDio.interceptors.add(InterceptorsWrapper(onResponse: _onResponse));
-
-          return tokenDio.request('/accounts/api_token_refresh/', queryParameters: {'token': token})
-          .then((result) {
-            final newToken = result.data['token'].toString();
-            options.headers[HttpHeaders.authorizationHeader] = 'Bearer $newToken';
-            providerInterface.onGotToken(newToken);
-          })
-          .whenComplete(_unLockCurrentDio)
-          .then((e) {
-            //repeat
-            return dio.request(options.path, options: options);
-          });
-        }
         default:
           break;
       }
@@ -182,5 +202,9 @@ class ProviderService {
     dio.unlock();
     dio.interceptors.responseLock.unlock();
     dio.interceptors.errorLock.unlock();
+  }
+
+  static void clearCache() {
+    _cache.clear();
   }
 }

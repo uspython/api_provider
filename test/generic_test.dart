@@ -1,8 +1,8 @@
 /*
  * @Author: jeffzhao
  * @Date: 2019-04-01 12:26:12
- * @Last Modified by:   jeffzhao
- * @Last Modified time: 2019-04-01 12:26:12
+ * @Last Modified by: jeffzhao
+ * @Last Modified time: 2019-04-02 16:53:26
  * Copyright Zhaojianfei. All rights reserved.
  */
 
@@ -13,9 +13,13 @@ import 'package:built_value/standard_json_plugin.dart';
 import './serializer.dart';
 import './user_modal.dart';
 
-final testS = (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
+final testS =
+    (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
 final token = '';
-final info = {'ua': 'Qingbnb/0.0.1/en (iPhone10,6; iOS)12.1; en_US', 'locale': 'zh_CN'};
+final info = {
+  'ua': 'Qingbnb/0.0.1/en (iPhone10,6; iOS)12.1; en_US',
+  'locale': 'zh_CN'
+};
 
 void main() {
   final _ = ProviderService()
@@ -23,12 +27,18 @@ void main() {
     ..setUserInfo(info)
     ..setSerializers(testS)
     ..initializationDone();
-     print('init done');
+  print('init done');
   ApiSettings().baseUrl = 'https://jsonplaceholder.typicode.com';
   //ProviderService.jsonSerializers = testS;
 
   test('test UserModal', () async {
-    final ret = await ApiProvider.fetch<UserModal>('/users/1');
+    final ret = await ApiProvider.fetch<UserModal>('/users/1', needCache: true);
+    print(ret);
+  });
+
+  test('test UserModal with cache', () async {
+    final ret = await ApiProvider.fetch<UserModal>('/users/1', needCache: true);
+    ApiService.clearCache();
     print(ret);
   });
 }
