@@ -70,7 +70,7 @@ class ProviderService {
 
     final info = userInfo;
     ApiSettings().baseUrl =
-        'https://${isDebug() ? 'api-qa' : 'api'}.city-home.cn';
+        'https://${isDebug() ? 'api-investor-qa' : 'api-investor'}.city-home.cn';
     ApiSettings().connectTimeout = 120 * 1000;
     ApiSettings().receiveTimeout = 120 * 1000;
     ApiSettings().requestHeader = {
