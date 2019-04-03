@@ -19,8 +19,8 @@ import 'package:dio/dio.dart'
         Dio,
         BaseOptions;
 
-import './CHError.dart';
-import './api_provider_interface.dart';
+import 'package:api_provider/src/cherror.dart';
+import 'package:api_provider/src/api_provider_interface.dart';
 
 typedef RequestCallbackType = dynamic Function(RequestOptions);
 typedef ResponseCallbackType = dynamic Function(Response<dynamic>);
