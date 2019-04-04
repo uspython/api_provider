@@ -59,18 +59,6 @@ void main() {
         providerService.initializationDone, anotherService.initializationDone);
   });
 
-  test('interractor with api status code error', () async {
-    try {
-      final _ = await ApiService.post('/accounts/api_token_refresh/',
-          params: {'token': 'xxx'});
-    } on CHError catch (e) {
-      expect(e.statusCode, 10010);
-      expect(e.message, '刷新时间过期');
-    } on DioError catch (e) {
-      expect(e.type, DioErrorType.RESPONSE);
-    }
-  });
-
   test('interractor with api status code error 2', () async {
     try {
       final _ = await ApiService.get('/accounts/api_token_refresh/',
@@ -85,10 +73,11 @@ void main() {
 
   test('test token saving', () async {
     try {
-      final ret = await ApiService.post('/accounts/login/',
-          params: {'username': 'jiangguangbin', 'password': '123456'});
+      final ret = await ApiService.post('/login/',
+          params: {'username': '15010331462', 'password': '123456'});
 
       print(jsonEncode(ret.data['token']));
+      expect(jsonEncode(ret.data['token']), isNotNull);
     } on CHError catch (e) {
       expect(e.statusCode, 10010);
       expect(e.message, '刷新时间过期');
@@ -97,9 +86,21 @@ void main() {
     }
   });
 
+  test('test wrong password', () async {
+    try {
+      final ret = await ApiService.post('/login/',
+          params: {'username': '15010331462', 'password': '123456111'});
+
+      print(jsonEncode(ret.data['error']));
+    } on CHError catch (e) {
+      print(e);
+      expect(e.statusCode, 10004);
+    }
+  });
+
   test('token expired, refresh token failed', () async {
     try {
-      final ret = await ApiProvider.fetch('/rooms/state/');
+      final ret = await ApiProvider.fetch('/order/month/summary/');
       print(jsonEncode(ret));
     } on CHError catch (e) {
       expect(e.statusCode.toString(), CHErrorEnum.refreshTokenFailed);

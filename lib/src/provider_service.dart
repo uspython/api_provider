@@ -69,8 +69,8 @@ class ProviderService {
     print('=============> :$token');
 
     final info = userInfo;
-    ApiSettings().baseUrl =
-        'https://${isDebug() ? 'api-investor-qa' : 'api-investor'}.city-home.cn';
+    final domain = isDebug() ? 'api-investor-qa' : 'api-investor';
+    ApiSettings().baseUrl = 'https://$domain.city-home.cn';
     ApiSettings().connectTimeout = 120 * 1000;
     ApiSettings().receiveTimeout = 120 * 1000;
     ApiSettings().requestHeader = {
@@ -119,12 +119,12 @@ class ProviderService {
 
     if (resp.statusCode == HttpStatus.ok) {
       final json = (resp.data as Map<String, dynamic>) ?? {};
-      if (json.containsKey('status') && (json['status'] as int) != 0) {
-        throw CHError.fromJson(json);
-      } else if (json.containsKey('data')) {
-        return _success((json['data'] as Map<String, dynamic>) ?? {}, resp);
+      if (json.containsKey('success') && (json['success'] as bool) == false) {
+        throw CHError.fromJson(json['error'] as Map<String, dynamic> ?? {});
+      } else if (json.containsKey('payload')) {
+        return _success((json['payload'] as Map<String, dynamic>) ?? {}, resp);
       } else {
-        return _success(json, resp);
+        _success(json, resp);
       }
     }
     return resp.data;
@@ -195,8 +195,18 @@ class ProviderService {
           break;
       }
     }
-    return e;
+    return _failure(e);
   };
+
+  static Error _failure(Error e) {
+    if (e is DioError &&
+        e.response != null &&
+        e.response.headers.contentType.value == ContentType.html.value) {
+      print(e.response.data);
+      return CHError(message: e.response.data.toString(), statusCode: 0x999999);
+    }
+    return e;
+  }
 
   static void _unLockCurrentDio() {
     dio.unlock();
