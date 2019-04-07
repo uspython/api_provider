@@ -20,12 +20,25 @@ class CHError extends DioError {
     super.message = message;
   }
 
+  CHError.fromDioError(DioError error)
+      : super(
+            response: error.response,
+            request: error.request,
+            message: error.message,
+            type: error.type,
+            error: error.error,
+            stackTrace: error.stackTrace) {
+    message = error.message;
+    statusCode = error.response.statusCode;
+    codeString = '';
+  }
+
   @override
-  final String message;
+  String message;
 
-  final int statusCode;
+  int statusCode;
 
-  final String codeString;
+  String codeString;
 }
 
 class CHErrorEnum {

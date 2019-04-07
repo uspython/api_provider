@@ -213,14 +213,14 @@ class ProviderService {
     return _failure(e);
   };
 
-  static Error _failure(Error e) {
+  static Error _failure(DioError e) {
     if (e is DioError &&
         e.response != null &&
         e.response.headers.contentType.value == ContentType.html.value) {
       print(e.response.data);
       return CHError(message: e.response.data.toString(), statusCode: 0x999999);
     }
-    return e;
+    return CHError.fromDioError(e);
   }
 
   static void _unLockCurrentDio() {
