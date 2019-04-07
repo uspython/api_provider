@@ -15,10 +15,10 @@ import 'package:api_datastore/api_datastore.dart';
 import 'package:dio/dio.dart';
 import 'package:api_provider/src/api_provider_interface.dart';
 
-final token = '2808555322_d953c3fb7d0e4b72b81a4f31a8b2c7c6';
+final token = '2808555213_9dafea06c3864d1cb8260d146a3bd84c';
 // final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
 final info = {
-  'ua': 'Qingbnb/0.0.1/en (iPhone10,6; iOS)12.1; en_US',
+  'ua': 'chinvestment/0.0.1/en (iPhone10,6; iOS)12.1; en_US',
   'locale': 'zh_CN'
 };
 //final onGotToken = (String atoken) => print('got token from api $atoken');
@@ -29,6 +29,8 @@ class TestInterface extends ApiProviderInterface {
   final onGotToken = (String atoken) => print('got token from api $atoken');
   @override
   final onLogout = () => print('log out');
+  @override
+  final onLogin = () => print('log in');
 }
 
 final testInterface = TestInterface();
@@ -46,7 +48,7 @@ void main() {
       final test = await ApiService.get('/error_url/');
       print(test);
     } on DioError catch (e) {
-      expect(e.type, DioErrorType.RESPONSE);
+      expect(e.message.contains('404'), true);
     } on Error catch (e) {
       print(e);
     }
@@ -61,6 +63,7 @@ void main() {
 
   test('interractor with api status code error 2', () async {
     try {
+      //TODO: (jeff)no token refresh for now
       final _ = await ApiService.get('/accounts/api_token_refresh/',
           params: {'token': 'xxx'});
     } on CHError catch (e) {
@@ -73,11 +76,11 @@ void main() {
 
   test('test token saving', () async {
     try {
-      final ret = await ApiService.post('/login/',
+      final ret = await ApiProvider.fetchPost('/login/',
           params: {'username': '15010331462', 'password': '123456'});
 
-      print(jsonEncode(ret.data['token']));
-      expect(jsonEncode(ret.data['token']), isNotNull);
+      print(jsonEncode(ret));
+      expect(jsonEncode(ret['token'].toString()), isNotNull);
     } on CHError catch (e) {
       expect(e.statusCode, 10010);
       expect(e.message, '刷新时间过期');
@@ -102,6 +105,7 @@ void main() {
     try {
       final ret = await ApiProvider.fetch('/order/month/summary/');
       print(jsonEncode(ret));
+      expect(double.parse(ret['calc_total_income'].toString()), isPositive);
     } on CHError catch (e) {
       expect(e.statusCode.toString(), CHErrorEnum.refreshTokenFailed);
     } on DioError catch (e) {

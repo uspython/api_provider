@@ -97,8 +97,8 @@ class ProviderService {
     print(
         'default request interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
     options.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
-
-    if (options.path == '/accounts/login/' ||
+    //TODO: (jeff) change api_token_refresh
+    if (options.path == '/login/' ||
         options.path == '/accounts/api_token_refresh/') {
       options.headers.remove(HttpHeaders.authorizationHeader);
     }
@@ -117,7 +117,7 @@ class ProviderService {
     print('=========> Default Response Interceptor');
     _cache[resp.request.uri] = resp;
 
-    if (resp.statusCode == HttpStatus.ok) {
+    if (_httpStatusSuccess().contains(resp.statusCode)) {
       final json = (resp.data as Map<String, dynamic>) ?? {};
       if (json.containsKey('success') && (json['success'] as bool) == false) {
         throw CHError.fromJson(json['error'] as Map<String, dynamic> ?? {});
@@ -130,10 +130,25 @@ class ProviderService {
     return resp.data;
   };
 
+  static List<int> _httpStatusSuccess() {
+    return [
+      HttpStatus.ok,
+      HttpStatus.created,
+      HttpStatus.accepted,
+      HttpStatus.nonAuthoritativeInformation,
+      HttpStatus.noContent,
+      HttpStatus.resetContent,
+      HttpStatus.partialContent,
+      HttpStatus.multiStatus,
+      HttpStatus.alreadyReported,
+      HttpStatus.imUsed
+    ];
+  }
+
   static Map<String, dynamic> _success(
       Map<String, dynamic> json, Response resp) {
     switch (resp.request.path) {
-      case '/accounts/login/':
+      case '/login/':
         providerInterface.onGotToken(json['token'].toString());
         providerInterface.onLogin();
         break;
@@ -175,12 +190,12 @@ class ProviderService {
 
             tokenDio.interceptors
                 .add(InterceptorsWrapper(onResponse: _onResponse));
-
+            //TODO: (jeff) change api_token_refresh
             return tokenDio
                 .request('/accounts/api_token_refresh/',
                     queryParameters: {'token': token})
                 .then((result) {
-                  final newToken = result.data['token'].toString();
+                  final newToken = result.data['payload']['token'].toString();
                   options.headers[HttpHeaders.authorizationHeader] =
                       'Bearer $newToken';
                   providerInterface.onGotToken(newToken);
