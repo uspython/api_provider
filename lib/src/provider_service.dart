@@ -158,6 +158,9 @@ class ProviderService {
         providerInterface.onGotToken(json['token'].toString());
         providerInterface.onLogin();
         break;
+      case '/logout/':
+        providerInterface.onLogout();
+        break;
       default:
     }
     return json;
