@@ -124,10 +124,15 @@ class ProviderService {
       } else if (json.containsKey('payload')) {
         return _success((json['payload'] as Map<String, dynamic>) ?? {}, resp);
       } else {
-        _success(json, resp);
+        return _success(json, resp);
       }
     }
-    return resp.data;
+    throw resp.data['error'] != null
+        ? CHError.fromJson(resp.data['error'] as Map<String, dynamic>)
+        : CHError(
+            message: resp.data.toString(),
+            statusCode: resp.statusCode,
+            codeString: 'unkonw');
   };
 
   static List<int> _httpStatusSuccess() {
@@ -209,7 +214,9 @@ class ProviderService {
         default:
           break;
       }
+      return e; // Return this cherror
     }
+    // Convert to cherror
     return _failure(e);
   };
 

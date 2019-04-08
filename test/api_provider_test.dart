@@ -91,8 +91,8 @@ void main() {
 
   test('test wrong password', () async {
     try {
-      final ret = await ApiService.post('/login/',
-          params: {'username': '15010331462', 'password': '123456111'});
+      final ret = await ApiProvider.fetchPost('/login/',
+          params: {'username': '15010331462', 'password': '1234561111'});
 
       print(jsonEncode(ret.data['error']));
     } on CHError catch (e) {
