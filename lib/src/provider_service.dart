@@ -104,13 +104,14 @@ class ProviderService {
     }
 
     final response = _cache[options.uri];
-    if (options.extra['needCached'] == true) {
+    if (options.extra['needCached'] == false) {
       print('${options.uri}: force refresh, ignore cache! \n');
       return options;
-    } else if (response != null) {
+    } else if (options.extra['needCached'] == true && response != null) {
       print('cache hit: ${options.uri} \n');
       return response;
     }
+    return options;
   };
 
   static final ResponseCallbackType _onResponse = (Response resp) {
