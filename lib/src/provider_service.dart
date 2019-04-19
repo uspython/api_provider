@@ -96,10 +96,16 @@ class ProviderService {
   final RequestCallbackType _onRequest = (RequestOptions options) {
     print(
         'default request interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
+    if (options.path == '/logout/') {
+      // no `logout api now, resolve fade data`
+      return dio.resolve(_onResponse(Response(
+          request: options,
+          data: {'error': {}, 'success': true, 'payload': <String, dynamic>{}},
+          statusCode: HttpStatus.ok)));
+    }
+
     options.headers[HttpHeaders.authorizationHeader] = 'JWT $token';
-    //TODO: (jeff) change api_token_refresh
-    if (options.path == '/login/' ||
-        options.path == '/accounts/api_token_refresh/') {
+    if (options.path == '/token/obtain/' || options.path == '/token/refresh/') {
       options.headers.remove(HttpHeaders.authorizationHeader);
     }
 
@@ -116,7 +122,7 @@ class ProviderService {
 
   static final ResponseCallbackType _onResponse = (Response resp) {
     print('=========> Default Response Interceptor');
-    _cache[resp.request.uri] = resp;
+    _cache[resp.request?.uri] = resp;
 
     if (_httpStatusSuccess().contains(resp.statusCode)) {
       final json = (resp.data as Map<String, dynamic>) ?? {};
@@ -154,7 +160,7 @@ class ProviderService {
   static Map<String, dynamic> _success(
       Map<String, dynamic> json, Response resp) {
     switch (resp.request.path) {
-      case '/login/':
+      case '/token/obtain/':
         providerInterface.onGotToken(json['token'].toString());
         providerInterface.onLogin();
         break;
@@ -162,6 +168,7 @@ class ProviderService {
         providerInterface.onLogout();
         break;
       default:
+        break;
     }
     return json;
   }
@@ -169,6 +176,11 @@ class ProviderService {
   final ErrorCallbackType _onError = (DioError e) {
     if (e is CHError) {
       switch (e.statusCode.toString()) {
+        case CHErrorEnum.serviceFailure:
+          {
+            return e;
+          }
+
         case CHErrorEnum.tokenExpired:
           {
             /// Refresh Token
@@ -198,10 +210,8 @@ class ProviderService {
 
             tokenDio.interceptors
                 .add(InterceptorsWrapper(onResponse: _onResponse));
-            //TODO: (jeff) change api_token_refresh
             return tokenDio
-                .request('/accounts/api_token_refresh/',
-                    queryParameters: {'token': token})
+                .request('/token/refresh/')
                 .then((result) {
                   final newToken = result.data['payload']['token'].toString();
                   options.headers[HttpHeaders.authorizationHeader] =
@@ -214,7 +224,14 @@ class ProviderService {
                   return dio.request(options.path, options: options);
                 });
           }
+
+        /// tokenExpired = '10008';
+        /// invalidToken = '10005';
+        /// nullToken = '10004';
         default:
+          {
+            providerInterface.onLogout();
+          }
           break;
       }
       return e; // Return this cherror

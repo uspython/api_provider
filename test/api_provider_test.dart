@@ -15,8 +15,9 @@ import 'package:api_datastore/api_datastore.dart';
 import 'package:dio/dio.dart';
 import 'package:api_provider/src/api_provider_interface.dart';
 
-final token = '2808555213_9dafea06c3864d1cb8260d146a3bd84c';
-// final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
+final token =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ilx1NTkwZlx1NTFlMSIsImV4cCI6MTU1NTgyMDI3MiwidXNlcl9pZCI6NDc0LCJlbWFpbCI6IjEzMjU0Njc1ODc2NUBxcS5jb20iLCJvcmlnX2lhdCI6MTU1NTY0NzQ3Mn0.JMg95eHsAUIBE2Lvxc0V84_zs_FzIPACoNh4048bkqw';
+//final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
 final info = {
   'ua': 'chinvestment/0.0.1/en (iPhone10,6; iOS)12.1; en_US',
   'locale': 'zh_CN'
@@ -61,29 +62,16 @@ void main() {
         providerService.initializationDone, anotherService.initializationDone);
   });
 
-  test('interractor with api status code error 2', () async {
-    try {
-      //TODO: (jeff)no token refresh for now
-      final _ = await ApiService.get('/accounts/api_token_refresh/',
-          params: {'token': 'xxx'});
-    } on CHError catch (e) {
-      expect(e.statusCode, 10010);
-      expect(e.message, '刷新时间过期');
-    } on DioError catch (e) {
-      expect(e.type, DioErrorType.RESPONSE);
-    }
-  });
-
   test('test token saving', () async {
     try {
-      final ret = await ApiProvider.fetchPost('/login/',
+      final ret = await ApiProvider.fetchPost('/token/obtain/',
           params: {'username': '15010331462', 'password': '123456'});
 
       print(jsonEncode(ret));
       expect(jsonEncode(ret['token'].toString()), isNotNull);
     } on CHError catch (e) {
-      expect(e.statusCode, 10010);
-      expect(e.message, '刷新时间过期');
+      expect(e.statusCode.toString(), CHErrorEnum.serviceFailure);
+      expect(e.message, '获取失败');
     } on DioError catch (e) {
       print(e.response);
     }
@@ -91,7 +79,7 @@ void main() {
 
   test('test wrong password', () async {
     try {
-      final ret = await ApiProvider.fetchPost('/login/',
+      final ret = await ApiProvider.fetchPost('/token/obtain/',
           params: {'username': '15010331462', 'password': '1234561111'});
 
       print(jsonEncode(ret.data['error']));
@@ -101,13 +89,36 @@ void main() {
     }
   });
 
+  test('force refresh token', () async {
+    try {
+      final _ = await ApiService.post('/token/refresh/');
+    } on CHError catch (e) {
+      expect(e.statusCode, int.parse(CHErrorEnum.invalidToken));
+      expect(e.message, '请求头没有带Token');
+    } on DioError catch (e) {
+      expect(e.type, DioErrorType.RESPONSE);
+    }
+  });
+
   test('token expired, refresh token failed', () async {
     try {
       final ret = await ApiProvider.fetch('/order/month/summary/');
       print(jsonEncode(ret));
       expect(double.parse(ret['calc_total_income'].toString()), isPositive);
     } on CHError catch (e) {
+      print(e);
       expect(e.statusCode.toString(), CHErrorEnum.refreshTokenFailed);
+    } on DioError catch (e) {
+      print(e.response);
+    }
+  });
+
+  test('fake logout', () async {
+    try {
+      final ret = await ApiProvider.fetch('/logout/');
+      print(jsonEncode(ret));
+    } on CHError catch (e) {
+      print(e.response);
     } on DioError catch (e) {
       print(e.response);
     }
