@@ -244,8 +244,17 @@ class ProviderService {
     if (e is DioError &&
         e.response != null &&
         e.response.headers.contentType.value == ContentType.html.value) {
-      print(e.response.data);
-      return CHError(message: e.response.data.toString(), statusCode: 0x999999);
+      final responseString = e.response.data.toString();
+      final regExceptionValue = RegExp(
+          r'<\s*th>Exception Value:<\s*\/\s*th>\s*<td><pre>(.*?)<\s*\/\s*pre><\/td>');
+      final regExceptionType =
+          RegExp(r'<\s*th>Exception Type:<\s*\/\s*th>\s*<td>(.*?)<\/td>');
+      final matchesValue = regExceptionValue.firstMatch(responseString);
+      final matchesType = regExceptionType.firstMatch(responseString);
+      return CHError(
+          message:
+              'Service Error, ${matchesType.group(1)}: ${matchesValue.group(1)}',
+          statusCode: 0x999999);
     }
     return CHError.fromDioError(e);
   }

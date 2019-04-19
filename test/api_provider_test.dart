@@ -15,9 +15,8 @@ import 'package:api_datastore/api_datastore.dart';
 import 'package:dio/dio.dart';
 import 'package:api_provider/src/api_provider_interface.dart';
 
-final token =
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ilx1NTkwZlx1NTFlMSIsImV4cCI6MTU1NTgyMDI3MiwidXNlcl9pZCI6NDc0LCJlbWFpbCI6IjEzMjU0Njc1ODc2NUBxcS5jb20iLCJvcmlnX2lhdCI6MTU1NTY0NzQ3Mn0.JMg95eHsAUIBE2Lvxc0V84_zs_FzIPACoNh4048bkqw';
-//final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
+//final token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ilx1NTkwZlx1NTFlMSIsImV4cCI6MTU1NTgyMDI3MiwidXNlcl9pZCI6NDc0LCJlbWFpbCI6IjEzMjU0Njc1ODc2NUBxcS5jb20iLCJvcmlnX2lhdCI6MTU1NTY0NzQ3Mn0.JMg95eHsAUIBE2Lvxc0V84_zs_FzIPACoNh4048bkqw';
+final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
 final info = {
   'ua': 'chinvestment/0.0.1/en (iPhone10,6; iOS)12.1; en_US',
   'locale': 'zh_CN'
@@ -113,6 +112,16 @@ void main() {
     }
   });
 
+  test('api 404', () async {
+    try {
+      final ret = await ApiProvider.fetch('/order/month/summary111/');
+      print(jsonEncode(ret));
+    } on CHError catch (e) {
+      print(e);
+      expect(e.statusCode, 0x999999);
+    }
+  });
+
   test('fake logout', () async {
     try {
       final ret = await ApiProvider.fetch('/logout/');
@@ -121,6 +130,32 @@ void main() {
       print(e.response);
     } on DioError catch (e) {
       print(e.response);
+    }
+  });
+
+  test('regex error', () {
+    final regExp = RegExp(
+        r'<\s*th>Exception Value:<\s*\/\s*th>\s*<td><pre>(.*?)<\s*\/\s*pre><\/td>');
+    final exp = regExp;
+    final str =
+        '''https://api-investor-qa.city-home.cn/order/month/summary/</td>
+	    </tr>
+	    <tr>
+	      <th>Django Version:</th>
+	      <td>2.0</td>
+	    </tr>
+	    <tr>
+	      <th>Exception Type:</th>
+	      <td>DecodeError</td>
+	    </tr>
+	    <tr>
+	      <th>Exception Value:</th>
+	      <td><pre>Not enough segments</pre></td>
+	    </tr>
+	    <tr>''';
+    final matches = exp.allMatches(str);
+    for (var item in matches) {
+      print(item.group(1));
     }
   });
 }
