@@ -177,9 +177,7 @@ class ProviderService {
     if (e is CHError) {
       switch (e.statusCode.toString()) {
         case CHErrorEnum.serviceFailure:
-          {
-            return e;
-          }
+          return e;
 
         case CHErrorEnum.tokenExpired:
           {
@@ -225,13 +223,17 @@ class ProviderService {
                 });
           }
 
-        /// tokenExpired = '10008';
-        /// invalidToken = '10005';
-        /// nullToken = '10004';
+        case CHErrorEnum.invalidToken:
+          providerInterface.onLogout();
+          break;
+        case CHErrorEnum.nullToken:
+          providerInterface.onLogout();
+          break;
+        case CHErrorEnum.refreshTokenFailed:
+          providerInterface.onLogout();
+          break;
+
         default:
-          {
-            providerInterface.onLogout();
-          }
           break;
       }
       return e; // Return this cherror
