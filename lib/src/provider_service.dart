@@ -96,7 +96,7 @@ class ProviderService {
   final RequestCallbackType _onRequest = (RequestOptions options) {
     print(
         'default request interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
-    options.headers[HttpHeaders.authorizationHeader] = 'Bearer $token';
+    options.headers[HttpHeaders.authorizationHeader] = 'JWT $token';
     //TODO: (jeff) change api_token_refresh
     if (options.path == '/login/' ||
         options.path == '/accounts/api_token_refresh/') {
@@ -176,10 +176,9 @@ class ProviderService {
             print('=========> refresh token');
             final options = e.request;
             // If the token has been updated, repeat directly.
-            if ('Bearer $token' !=
+            if ('JWT $token' !=
                 options.headers[HttpHeaders.authorizationHeader]) {
-              options.headers[HttpHeaders.authorizationHeader] =
-                  'Bearer $token';
+              options.headers[HttpHeaders.authorizationHeader] = 'JWT $token';
               //repeat
               return dio.request(options.path, options: options);
             }
@@ -206,7 +205,7 @@ class ProviderService {
                 .then((result) {
                   final newToken = result.data['payload']['token'].toString();
                   options.headers[HttpHeaders.authorizationHeader] =
-                      'Bearer $newToken';
+                      'JWT $newToken';
                   providerInterface.onGotToken(newToken);
                 })
                 .whenComplete(_unLockCurrentDio)
