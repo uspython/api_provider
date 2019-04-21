@@ -199,12 +199,12 @@ class ProviderService {
             dio.interceptors.errorLock.lock();
 
             final tokenDio = Dio(BaseOptions(
-              baseUrl: options.baseUrl,
-              connectTimeout: options.connectTimeout,
-              receiveTimeout: options.receiveTimeout,
-              headers: options.headers,
-              responseType: options.responseType,
-            ));
+                baseUrl: options.baseUrl,
+                connectTimeout: options.connectTimeout,
+                receiveTimeout: options.receiveTimeout,
+                headers: options.headers,
+                responseType: options.responseType,
+                method: 'POST'));
 
             tokenDio.interceptors
                 .add(InterceptorsWrapper(onResponse: _onResponse));
