@@ -29,7 +29,7 @@ class CHError extends DioError {
             error: error.error,
             stackTrace: error.stackTrace) {
     message = error.message;
-    statusCode = error.response.statusCode ?? 0x01;
+    statusCode = error.response?.statusCode ?? 0x01;
     codeString = '';
   }
 

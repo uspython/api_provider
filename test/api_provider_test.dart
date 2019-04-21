@@ -15,8 +15,11 @@ import 'package:api_datastore/api_datastore.dart';
 import 'package:dio/dio.dart';
 import 'package:api_provider/src/api_provider_interface.dart';
 
-//final token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ilx1NTkwZlx1NTFlMSIsImV4cCI6MTU1NTgyMDI3MiwidXNlcl9pZCI6NDc0LCJlbWFpbCI6IjEzMjU0Njc1ODc2NUBxcS5jb20iLCJvcmlnX2lhdCI6MTU1NTY0NzQ3Mn0.JMg95eHsAUIBE2Lvxc0V84_zs_FzIPACoNh4048bkqw';
-final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
+final token =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ilx1NTkwZlx1NTFlMSIsInVzZXJfaWQiOjQ3NCwib3JpZ19pYXQiOjE1NTU2NjYxNzQsImV4cCI6MTU1NTgzODk3NCwiZW1haWwiOiIxMzI1NDY3NTg3NjVAcXEuY29tIn0.DLj5bx6ltcvq1g662jod0Hti9gBxwDYRrHl9q5orW64';
+//final token = '2808555322_05ffcdba677745ff98e675f983eb06fc';
+// final token =
+//     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJvcmlnX2lhdCI6MTU1NTg0MDM4NywidXNlcl9pZCI6NDc0LCJ1c2VybmFtZSI6Ilx1NTkwZlx1NTFlMSIsImVtYWlsIjoiMTExMzI1NDY3NTg3NjVAcXEuY29tIiwiZXhwIjoxNTU2MDEzMTg3fQ.L1Xj3db6K6fDEjjFdIachRC_WTg1uBDK1KVjGryzOSA';
 final info = {
   'ua': 'chinvestment/0.0.1/en (iPhone10,6; iOS)12.1; en_US',
   'locale': 'zh_CN'
@@ -69,8 +72,8 @@ void main() {
       print(jsonEncode(ret));
       expect(jsonEncode(ret['token'].toString()), isNotNull);
     } on CHError catch (e) {
-      expect(e.statusCode.toString(), CHErrorEnum.serviceFailure);
-      expect(e.message, '获取失败');
+      expect(e.statusCode, 10002);
+      print(e.message);
     } on DioError catch (e) {
       print(e.response);
     }
@@ -108,9 +111,9 @@ void main() {
       print(e);
       expect(e.statusCode.toString(), CHErrorEnum.refreshTokenFailed);
     } on DioError catch (e) {
-      print(e.response);
+      print(e);
     }
-  });
+  }, timeout: Timeout(Duration(seconds: 120)));
 
   test('api 404', () async {
     try {

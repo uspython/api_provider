@@ -64,9 +64,9 @@ class ProviderService {
   }
 
   dynamic _init() {
-    print('=============> confign initialize');
-    print('=============> token from device');
-    print('=============> :$token');
+    print('[API Provider]: confign initialize');
+    print('[API Provider]: token from device');
+    print('[API Provider]: $token');
 
     final info = userInfo;
     final domain = isDebug() ? 'api-investor-qa' : 'api-investor';
@@ -95,7 +95,7 @@ class ProviderService {
 
   final RequestCallbackType _onRequest = (RequestOptions options) {
     print(
-        'default request interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
+        '[API Provider]: Interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
     if (options.path == '/logout/') {
       // no `logout api now, resolve fade data`
       return dio.resolve(_onResponse(Response(
@@ -104,24 +104,30 @@ class ProviderService {
           statusCode: HttpStatus.ok)));
     }
 
-    options.headers[HttpHeaders.authorizationHeader] = 'JWT $token';
+    // if token has refreshed, use new token
+    final refreshedToken = options.headers[HttpHeaders.authorizationHeader];
+    if (refreshedToken == null) {
+      //no token, use the old one
+      options.headers[HttpHeaders.authorizationHeader] = 'JWT $token';
+    }
+
     if (options.path == '/token/obtain/' || options.path == '/token/refresh/') {
       options.headers.remove(HttpHeaders.authorizationHeader);
     }
 
     final response = _cache[options.uri];
     if (options.extra['needCached'] == false) {
-      print('${options.uri}: force refresh, ignore cache! \n');
+      print('[API Provider]: force refresh, ignore cache at ${options.uri} \n');
       return options;
     } else if (options.extra['needCached'] == true && response != null) {
-      print('cache hit: ${options.uri} \n');
+      print('[API Provider]: cache hit: ${options.uri} \n');
       return response;
     }
     return options;
   };
 
   static final ResponseCallbackType _onResponse = (Response resp) {
-    print('=========> Default Response Interceptor');
+    print('[API Provider]: Default Response Interceptor');
     _cache[resp.request?.uri] = resp;
 
     if (_httpStatusSuccess().contains(resp.statusCode)) {
@@ -175,6 +181,7 @@ class ProviderService {
 
   final ErrorCallbackType _onError = (DioError e) {
     if (e is CHError) {
+      print('[API Provider]: Error Occurred, `${e.message}`');
       switch (e.statusCode.toString()) {
         case CHErrorEnum.serviceFailure:
           return e;
@@ -183,7 +190,7 @@ class ProviderService {
           {
             /// Refresh Token
             // return _refreshToken(e);
-            print('=========> refresh token');
+            print('[API Provider]: Token expried, refresh token...');
             final options = e.request;
             // If the token has been updated, repeat directly.
             if ('JWT $token' !=
@@ -211,14 +218,19 @@ class ProviderService {
             return tokenDio
                 .request('/token/refresh/')
                 .then((result) {
-                  final newToken = result.data['payload']['token'].toString();
+                  final newToken = result.data['token'].toString();
                   options.headers[HttpHeaders.authorizationHeader] =
                       'JWT $newToken';
                   providerInterface.onGotToken(newToken);
+                }, onError: (error) {
+                  if (error is DioError) {
+                    throw _failure(error);
+                  }
                 })
                 .whenComplete(_unLockCurrentDio)
                 .then((e) {
                   //repeat
+                  print('[API Provider]: Retry path ${options.path}');
                   return dio.request(options.path, options: options);
                 });
           }
@@ -243,6 +255,7 @@ class ProviderService {
   };
 
   static Error _failure(DioError e) {
+    print('[API Provider]: Unexpect Error Occurred, `${e.message}`');
     if (e is DioError &&
         e.response != null &&
         e.response.headers.contentType.value == ContentType.html.value) {
@@ -255,9 +268,14 @@ class ProviderService {
       final matchesType = regExceptionType.firstMatch(responseString);
       return CHError(
           message:
-              'Service Error, ${matchesType.group(1)}: ${matchesValue.group(1)}',
+              'Service Error, code: ${e.response.statusCode}, ${matchesType?.group(1)}: ${matchesValue?.group(1)}',
           statusCode: 0x999999);
     }
+    // final tmpError = e.toString();
+    //   return CHError(
+    //       codeString: 'unexpected error',
+    //       statusCode: 0x999998,
+    //       message: tmpError);
     return CHError.fromDioError(e);
   }
 
