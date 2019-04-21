@@ -64,8 +64,8 @@ class ProviderService {
   }
 
   dynamic _init() {
-    print('[API Provider]: confign initialize');
-    print('[API Provider]: token from device');
+    print('[API Provider]: Configuring initialization');
+    print('[API Provider]: Token from device is:');
     print('[API Provider]: $token');
 
     final info = userInfo;
@@ -94,8 +94,9 @@ class ProviderService {
   }
 
   final RequestCallbackType _onRequest = (RequestOptions options) {
+    print('[API Provider]: Processing with Default Request Interceptor');
     print(
-        '[API Provider]: Interceptor send request：path:${options.path}，baseURL:${options.baseUrl}');
+        '[API Provider]: Sending request：path:${options.path}，baseURL:${options.baseUrl}');
     if (options.path == '/logout/') {
       // no `logout api now, resolve fade data`
       return dio.resolve(_onResponse(Response(
@@ -117,17 +118,18 @@ class ProviderService {
 
     final response = _cache[options.uri];
     if (options.extra['needCached'] == false) {
-      print('[API Provider]: force refresh, ignore cache at ${options.uri} \n');
+      print(
+          '[API Provider]: Force refreshing, ignore cache at ${options.uri} \n');
       return options;
     } else if (options.extra['needCached'] == true && response != null) {
-      print('[API Provider]: cache hit: ${options.uri} \n');
+      print('[API Provider]: Cache hitted: ${options.uri} \n');
       return response;
     }
     return options;
   };
 
   static final ResponseCallbackType _onResponse = (Response resp) {
-    print('[API Provider]: Default Response Interceptor');
+    print('[API Provider]: Processing with Default Response Interceptor');
     _cache[resp.request?.uri] = resp;
 
     if (_httpStatusSuccess().contains(resp.statusCode)) {
@@ -230,7 +232,7 @@ class ProviderService {
                 .whenComplete(_unLockCurrentDio)
                 .then((e) {
                   //repeat
-                  print('[API Provider]: Retry path ${options.path}');
+                  print('[API Provider]: Retry with path ${options.path}');
                   return dio.request(options.path, options: options);
                 });
           }

@@ -12,8 +12,8 @@ packages:
     dependency: "direct dev"
     description:
       path: "."
-      ref: fb16c7e
-      resolved-ref: fb16c7eb141fb3de6603da0fe4d1cf939d0e47ec
+      ref: "078c60e"
+      resolved-ref: "078c60e98262516fe9a2582132019fc8793659a9"
       url: "git@gitlab.city-home.cn:app/api_datastore.git"
     source: git
     version: "0.0.1"
