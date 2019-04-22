@@ -44,7 +44,7 @@ class CHError extends DioError {
 class CHErrorEnum {
   static const String serviceFailure = '10066329'; // 0x999999
   static const String tokenExpired = '10008';
-  static const String invalidToken = '10005';
-  static const String nullToken = '10004';
+  static const String invalidToken = '10006';
+  static const String nullToken = '10005';
   static const String refreshTokenFailed = '10007';
 }

@@ -50,6 +50,7 @@ class ApiProvider {
   }
 
   static T _serialized<T>(dynamic data) {
+    print('[API Provider]: Serializing to ${data.runtimeType.toString()}');
     var r = data;
     if (T != dynamic) {
       r = ProviderService.jsonSerializers

@@ -167,12 +167,15 @@ class ProviderService {
 
   static Map<String, dynamic> _success(
       Map<String, dynamic> json, Response resp) {
+    print('[API Provider]: Got Response');
     switch (resp.request.path) {
       case '/token/obtain/':
+        print('[API Provider]: Fetch token successfully.');
         providerInterface.onGotToken(json['token'].toString());
         providerInterface.onLogin();
         break;
       case '/logout/':
+        print('[API Provider]: Preparing for logout');
         providerInterface.onLogout();
         break;
       default:
