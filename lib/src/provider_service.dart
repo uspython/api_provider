@@ -71,8 +71,8 @@ class ProviderService {
     final info = userInfo;
     final domain = isDebug() ? 'api-investor-qa' : 'api-investor';
     ApiSettings().baseUrl = 'https://$domain.city-home.cn';
-    ApiSettings().connectTimeout = 120 * 1000;
-    ApiSettings().receiveTimeout = 120 * 1000;
+    ApiSettings().connectTimeout = 60 * 1000;
+    ApiSettings().receiveTimeout = 60 * 1000;
     ApiSettings().requestHeader = {
       HttpHeaders.userAgentHeader: info['ua'] as String,
       HttpHeaders.acceptHeader: 'application/json',
@@ -241,11 +241,7 @@ class ProviderService {
           }
 
         case CHErrorEnum.invalidToken:
-          providerInterface.onLogout();
-          break;
         case CHErrorEnum.nullToken:
-          providerInterface.onLogout();
-          break;
         case CHErrorEnum.refreshTokenFailed:
           providerInterface.onLogout();
           break;

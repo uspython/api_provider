@@ -95,14 +95,14 @@ void main() {
     try {
       final _ = await ApiService.post('/token/refresh/');
     } on CHError catch (e) {
-      expect(e.statusCode, int.parse(CHErrorEnum.invalidToken));
+      expect(e.statusCode, int.parse(CHErrorEnum.nullToken));
       expect(e.message, '请求头没有带Token');
     } on DioError catch (e) {
       expect(e.type, DioErrorType.RESPONSE);
     }
   });
 
-  test('token expired, refresh token failed', () async {
+  test('token expired, refresh token', () async {
     try {
       final ret = await ApiProvider.fetch('/order/month/summary/');
       print(jsonEncode(ret));
