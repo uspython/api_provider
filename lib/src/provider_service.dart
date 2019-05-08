@@ -272,11 +272,13 @@ class ProviderService {
               'Service Error, code: ${e.response.statusCode}, ${matchesType?.group(1)}: ${matchesValue?.group(1)}',
           statusCode: 0x999999);
     }
-    // final tmpError = e.toString();
-    //   return CHError(
-    //       codeString: 'unexpected error',
-    //       statusCode: 0x999998,
-    //       message: tmpError);
+    // Handle Network Error
+    if (e.error is SocketException) {
+      final code = (e.error.osError as OSError).errorCode;
+      return CHError(
+          message: '网络错误, 请检查网络 \n ${e.error.message}',
+          statusCode: code ?? 0x999998);
+    }
     return CHError.fromDioError(e);
   }
 
