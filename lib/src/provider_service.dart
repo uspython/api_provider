@@ -275,9 +275,11 @@ class ProviderService {
     // Handle Network Error
     if (e.error is SocketException) {
       final code = (e.error.osError as OSError).errorCode;
+      final message = isDebug()
+          ? '\n ${e.error.message ?? 'unknow'}'
+          : '\n ${e.error.message.split(':').first?.toString() ?? 'unknow'}';
       return CHError(
-          message: '网络错误, 请检查网络 \n ${e.error.message}',
-          statusCode: code ?? 0x999998);
+          message: '网络错误, 请检查网络 $message', statusCode: code ?? 0x999998);
     }
     return CHError.fromDioError(e);
   }
