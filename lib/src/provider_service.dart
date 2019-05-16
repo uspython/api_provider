@@ -37,6 +37,7 @@ class ProviderService {
   static Serializers _jsonSerializers;
   static String get token => _token;
   static String _token;
+  static String _apiDomain;
   static Map<String, dynamic> get userInfo => _userInfo;
   static Map<String, dynamic> _userInfo;
 
@@ -55,6 +56,10 @@ class ProviderService {
     _token = token;
   }
 
+  void setDomain(String domain) {
+    _apiDomain = domain;
+  }
+
   void setUserInfo(Map<String, dynamic> info) {
     _userInfo = info;
   }
@@ -70,7 +75,7 @@ class ProviderService {
 
     final info = userInfo;
     final domain = isDebug() ? 'api-investor-qa' : 'api-investor';
-    ApiSettings().baseUrl = 'https://$domain.city-home.cn';
+    ApiSettings().baseUrl = 'https://${_apiDomain ?? domain}.city-home.cn';
     ApiSettings().connectTimeout = 60 * 1000;
     ApiSettings().receiveTimeout = 60 * 1000;
     ApiSettings().requestHeader = {
@@ -84,6 +89,7 @@ class ProviderService {
   }
 
   static bool isDebug() {
+    if ((_apiDomain ?? '').contains('qa')) return true;
     return !(const bool.fromEnvironment('dart.vm.product'));
   }
 
