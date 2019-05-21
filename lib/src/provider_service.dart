@@ -12,6 +12,7 @@ import 'package:built_value/serializer.dart';
 import 'package:dio/dio.dart'
     show
         DioError,
+        DioErrorType,
         Interceptor,
         InterceptorsWrapper,
         RequestOptions,
@@ -286,6 +287,10 @@ class ProviderService {
           : '\n ${e.error.message.split(':').first?.toString() ?? 'unknow'}';
       return CHError(
           message: '网络错误, 请检查网络 $message', statusCode: code ?? 0x999998);
+    } else if (e?.type == DioErrorType.CONNECT_TIMEOUT ||
+        e.type == DioErrorType.RECEIVE_TIMEOUT ||
+        e.type == DioErrorType.SEND_TIMEOUT) {
+      return CHError(message: '网络错误, 请检查网络 ${e.message}', statusCode: 0x999997);
     }
     return CHError.fromDioError(e);
   }
