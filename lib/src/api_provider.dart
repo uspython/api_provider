@@ -7,7 +7,8 @@
  */
 import 'dart:async';
 
-import 'package:api_datastore/api_datastore.dart';
+import 'package:api_datastore/api_datastore.dart'
+    show ApiService, CallbackOptions, dio;
 import 'package:built_value/serializer.dart';
 import './provider_service.dart';
 
@@ -57,5 +58,40 @@ class ApiProvider {
           .deserialize(data, specifiedType: FullType(T));
     }
     return r as T;
+  }
+
+  /// fetch api using GET Method with [path],
+  /// [params] are parameters,
+  /// if you need your own request interceptor
+  /// using [CallbackOptions] [callbacks],
+  /// when [needCache] is ture, the response will be cached in ram
+  static Future<T> fetchFake<T>(String path,
+      {Map<String, dynamic> params,
+      CallbackOptions callbacks,
+      bool needCache = false}) async {
+    final completer = Completer<T>();
+    try {
+      final ret = await dio.get(path, queryParameters: params);
+      completer.complete(_serialized<T>(ret.data));
+    } catch (e) {
+      completer.completeError(e);
+    }
+    return completer.future;
+  }
+
+  /// Fetch api using POST Method with [path],
+  /// [params] are parameters,
+  /// if you need your own request interceptor
+  /// using [CallbackOptions] [callbacks]
+  static Future<T> fetchPostFake<T>(String path,
+      {Map<String, dynamic> params, CallbackOptions callbacks}) async {
+    final completer = Completer<T>();
+    try {
+      final ret = await dio.post(path, queryParameters: params);
+      completer.complete(_serialized<T>(ret.data));
+    } catch (e) {
+      completer.completeError(e);
+    }
+    return completer.future;
   }
 }

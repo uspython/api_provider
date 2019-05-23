@@ -41,4 +41,17 @@ void main() {
     ApiService.clearCache();
     print(ret);
   });
+
+  test('test fake UserModal', () async {
+    final ret = await ApiProvider.fetchFake<UserModal>(
+        'https://jsonplaceholder.typicode.com/users/1',
+        needCache: true);
+    print(ret);
+  });
+
+  test('test post fake', () async {
+    final ret = await ApiProvider.fetchPostFake(
+        'https://jsonplaceholder.typicode.com/posts');
+    print(ret);
+  });
 }
