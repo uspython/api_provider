@@ -140,7 +140,16 @@ class ProviderService {
     _cache[resp.request?.uri] = resp;
 
     if (_httpStatusSuccess().contains(resp.statusCode)) {
-      final json = (resp.data as Map<String, dynamic>) ?? {};
+      Map<String, dynamic> json;
+      if (resp.data is List<dynamic>) {
+        json = {
+          'success': true,
+          'payload': {'list': resp.data as List<dynamic>}
+        };
+      } else {
+        json = (resp.data as Map<String, dynamic>) ?? {};
+      }
+
       if (json.containsKey('success') && (json['success'] as bool) == false) {
         throw CHError.fromJson(json['error'] as Map<String, dynamic> ?? {});
       } else if (json.containsKey('payload')) {
