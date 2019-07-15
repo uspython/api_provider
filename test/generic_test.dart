@@ -12,6 +12,7 @@ import 'package:api_provider/api_provider.dart';
 import 'package:built_value/standard_json_plugin.dart';
 import './serializer.dart';
 import './user_modal.dart';
+import 'fake_report_content_model.dart';
 
 final testS =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();
@@ -52,6 +53,12 @@ void main() {
   test('test post fake', () async {
     final ret = await ApiProvider.fetchPostFake(
         'https://jsonplaceholder.typicode.com/posts');
+    print(ret);
+  });
+
+  test('test comments', () async {
+    final ret = await ApiProvider.fetchFake<FakeReportContentItemModel>(
+        'https://jsonplaceholder.typicode.com/comments?postId=2&id=7');
     print(ret);
   });
 }

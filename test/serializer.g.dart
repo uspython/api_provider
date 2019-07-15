@@ -11,6 +11,8 @@ Serializers _$serializers = (new Serializers().toBuilder()
       ..add(Company.serializer)
       ..add(Geo.serializer)
       ..add(UserModal.serializer)
+      ..add(FakeReportContentModel.serializer)
+      ..add(FakeReportContentItemModel.serializer)
       ..addBuilderFactory(
           const FullType(BuiltMap,
               const [const FullType(String), const FullType(JsonObject)]),
